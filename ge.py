@@ -3,7 +3,7 @@ from google import genai
 
 # الإعدادات (المفاتيح التي قدمتها)
 TELEGRAM_TOKEN = '8694792877:AAG14Y5i2owSkY_Elv5D81uJIkeWniKDBDc'
-GEMINI_API_KEY = 'AIzaSyABZMq8soZFuB0esoKvfbyl9_hNY7qPfx4'
+GEMINI_API_KEY = 'AIzaSyD0AqvK9Lb_KyonW0axk2KH1vnLWv7THoY'
 
 # تهيئة البوت والعميل
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
