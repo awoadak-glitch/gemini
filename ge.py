@@ -1,40 +1,36 @@
 import telebot
 from google import genai
+import os
+import time
 
-# الإعدادات (المفاتيح التي قدمتها)
-TELEGRAM_TOKEN = '8694792877:AAG14Y5i2owSkY_Elv5D81uJIkeWniKDBDc'
-GEMINI_API_KEY = 'AIzaSyD0AqvK9Lb_KyonW0axk2KH1vnLWv7THoY'
+# سحب المفاتيح من بيئة العمل (GitHub Secrets)
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-# تهيئة البوت والعميل
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-# مخزن مؤقت للمحادثات للحفاظ على السياق (الذاكرة)
 sessions = {}
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     user_id = message.chat.id
-    
-    # إنشاء جلسة محادثة جديدة إذا لم تكن موجودة
     if user_id not in sessions:
-        sessions[user_id] = client.chats.create(
-            model="gemini-2.0-flash",
-            config={
-                "system_instruction": "أنت مساعد ذكي ومحترف، تجيب على الأسئلة بدقة واختصار وتدعم الأكواد البرمجية والحلول التقنية."
-            }
-        )
+        try:
+            # استخدام الموديل الأكثر استقراراً
+            sessions[user_id] = client.chats.create(model="gemini-1.5-flash")
+        except Exception as e:
+            bot.reply_to(message, "⚠️ فشل في تهيئة الموديل. تأكد من تفعيل المفتاح.")
+            return
 
     try:
-        # إرسال رسالة المستخدم إلى Gemini
         response = sessions[user_id].send_message(message.text)
-        
-        # إرسال رد الذكاء الاصطناعي للمستخدم
         bot.reply_to(message, response.text, parse_mode='Markdown')
-        
     except Exception as e:
-        print(f"Error: {e}")
-        bot.reply_to(message, "⚠️ حدث خطأ أثناء الاتصال بـ Gemini، تأكد من صلاحية المفتاح.")
+        # طباعة الخطأ كاملاً في GitHub Logs لنعرف السبب بدقة
+        print(f"FULL ERROR: {e}")
+        bot.reply_to(message, "⚠️ حدث خطأ في الاتصال. جرب مرة أخرى.")
 
-print("✅ بوت Gemini فعال الآن على التلجرام...")
-bot.infinity_polling()
+if __name__ == "__main__":
+    print("🚀 البوت يعمل الآن...")
+    bot.infinity_polling()
